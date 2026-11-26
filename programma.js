@@ -3,6 +3,12 @@ const messaggio = document.getElementById('messaggio');
 let eventi = [];
 let sedi = [];
 
+const elencoNotizie = document.getElementById('elenco-notizie');
+const messaggioNotizie = document.getElementById('messaggio-notizie');
+
+const URL_NOTIZIE =
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vTeoD9R4Lfq5wsTJ2H3BoEvLKNZPdhnsf4v05_rYEjbWcRoCFCG8VM-7WL91IhXZdU12bmBAmIOG893/pub?gid=761735776&single=true&output=csv';
+
 const URL_EVENTI = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTeoD9R4Lfq5wsTJ2H3BoEvLKNZPdhnsf4v05_rYEjbWcRoCFCG8VM-7WL91IhXZdU12bmBAmIOG893/pub?gid=2058830147&single=true&output=tsv';
 const URL_SEDI = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTeoD9R4Lfq5wsTJ2H3BoEvLKNZPdhnsf4v05_rYEjbWcRoCFCG8VM-7WL91IhXZdU12bmBAmIOG893/pub?gid=1307868616&single=true&output=csv';
 
@@ -39,6 +45,45 @@ function leggiTabella(url, delimitatore = '') {
       error: errore => reject(errore)
     });
   });
+}
+
+async function caricaNotizie() {
+  try {
+    const notizie = await leggiTabella(URL_NOTIZIE);
+    elencoNotizie.replaceChildren();
+
+    if (notizie.length === 0) {
+      messaggioNotizie.textContent = 'Nessuna notizia disponibile.';
+      return;
+    }
+
+    for (const notizia of notizie) {
+      const elemento = document.createElement('li');
+      const collegamento = document.createElement('a');
+
+      collegamento.href = notizia.link;
+      collegamento.textContent = notizia.titolo;
+      collegamento.target = '_blank';
+      collegamento.rel = 'noopener noreferrer';
+
+      elemento.appendChild(collegamento);
+
+      if (notizia.data) {
+        const data = document.createElement('span');
+        data.textContent = ' · ' + notizia.data;
+        elemento.appendChild(data);
+      }
+
+      elencoNotizie.appendChild(elemento);
+    }
+
+    messaggioNotizie.textContent = '';
+  } catch (errore) {
+    elencoNotizie.replaceChildren();
+    messaggioNotizie.textContent =
+      'Le notizie non sono disponibili al momento.';
+    console.error(errore);
+  }
 }
 
 function creaScheda(evento) {
@@ -114,3 +159,4 @@ async function caricaProgramma() {
 }
 
 caricaProgramma();
+caricaNotizie();
